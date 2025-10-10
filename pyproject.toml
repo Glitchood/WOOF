@@ -4,4 +4,6 @@ version = "0.1.0"
 description = "WOOF - Web Operation Outlier Firewall"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "flask>=3.1.2",
+]
