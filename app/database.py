@@ -1,19 +1,19 @@
-import sqlite3
-from contextlib import contextmanager
-from app.config import settings
+from pathlib import Path
+from sqlmodel import Session, SQLModel, create_engine
 
-@contextmanager
-def get_db():
-    conn = sqlite3.connect(settings.database_url)
-    conn.row_factory = sqlite3.Row
-    try:
-        yield conn
-    finally:
-        conn.close()
+from .config import settings
+
+# Ensure the data directory exists
+data_dir = Path(settings.DATABASE_URL.replace("sqlite:///", "")).parent
+data_dir.mkdir(parents=True, exist_ok=True)
+
+engine = create_engine(settings.DATABASE_URL)
+
 
 def init_db():
-    with get_db() as conn:
-        pass
-        #conn.execute("") #make the table if it doesn't exist
-                         #assume it exists for now
+    SQLModel.metadata.create_all(engine)
 
+
+def get_session():
+    with Session(engine) as session:
+        yield session
