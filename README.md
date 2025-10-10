@@ -14,6 +14,9 @@ $ cd WOOF
 $ source venv/bin/activate
 ```
 
-## Build:
-TBD
+## Test:
+```
+python -m fastapi dev app/main.py
+```
+go to localhost:8000/docs
 
