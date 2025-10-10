@@ -23,6 +23,15 @@ class Token(BaseModel):
     token_type: str
 
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class LoginResponse(BaseModel):
+    token: str
+
+
 class TokenData(BaseModel):
     username: str | None = None
 

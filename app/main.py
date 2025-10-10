@@ -2,7 +2,7 @@ from datetime import timedelta
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from sqlmodel import Session
 
@@ -11,31 +11,47 @@ from .config import settings
 from .database import get_session, init_db
 
 app = FastAPI(title=settings.app_name)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+security = HTTPBearer()
 
 
 async def get_current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
     db: Session = Depends(get_session),
-):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+) -> models.User:
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-        token_data = schemas.TokenData(username=username)
+        # Verify token
+        payload = jwt.decode(
+            credentials.credentials,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM]
+        )
+        username = payload.get("sub")
+        if not username:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication token",
+            )
+        
+        # Get user from database
+        user = crud.get_user_by_username(db, username=username)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+            )
+            
+        return user
+        
     except JWTError:
-        raise credentials_exception
-    
-    user = crud.get_user_by_username(db, username=token_data.username)
-    if user is None:
-        raise credentials_exception
-    return user
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(e),
+        )
 
 
 @app.post("/api/register", response_model=schemas.UserPublic)
@@ -60,29 +76,31 @@ async def register(user: schemas.UserCreate, db: Session = Depends(get_session))
         raise
 
 
-@app.post("/login")
-async def login(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Session = Depends(get_session),
-):
-    user = crud.get_user_by_username(db, username=form_data.username)
-    if not user or not auth.verify_password(form_data.password, user.hashed_password):
+@app.post("/api/login", response_model=schemas.LoginResponse)
+async def login(login_data: schemas.LoginRequest, db: Session = Depends(get_session)):
+    user = crud.get_user_by_username(db, username=login_data.username)
+    if not user or not auth.verify_password(login_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail="Incorrect username or password"
         )
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.create_access_token(
+    token = auth.create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"token": token}
 
 
 @app.get("/api/me", response_model=schemas.UserPublic)
-async def read_users_me(current_user: Annotated[models.User, Depends(get_current_user)]):
-    return current_user
+async def read_users_me(
+    current_user: Annotated[models.User, Depends(get_current_user)]
+) -> schemas.UserPublic:
+    return schemas.UserPublic(
+        id=current_user.id,
+        username=current_user.username,
+        balance=current_user.balance
+    )
 
 
 @app.get("/api/users/{user_id}", response_model=schemas.UserPublic)
