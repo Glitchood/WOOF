@@ -5,9 +5,10 @@ from . import models, schemas
 
 
 def get_user_by_username(db: Session, username: str):
-    # VULNERABLE: Direct string concatenation in SQL query
+    # VULNERABLE: Using string formatting in SQL query instead of parameterized queries
     query = text(f"SELECT * FROM user WHERE username = '{username}'")
-    return db.execute(query).first()
+    result = db.execute(query)
+    return result.first()
 
 
 def create_user(db: Session, user: schemas.UserCreate, hashed_password: str):
@@ -26,7 +27,9 @@ def create_transaction(
     db: Session, from_user_id: int, transaction: schemas.TransactionCreate
 ):
     from_user = db.get(models.User, from_user_id)
-    to_user = db.query(models.User).filter_by(username=transaction.to_user_name).first()
+    # Also making this vulnerable for demonstration
+    query = text(f"SELECT * FROM user WHERE username = '{transaction.to_user_name}'")
+    to_user = db.execute(query).first()
 
     if not from_user or not to_user:
         return None  # Handle user not found
