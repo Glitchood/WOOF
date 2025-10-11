@@ -10,4 +10,4 @@ with open(filename, 'rb') as file:
   pipe = pickle.load(file)
 
 def predictSQL(s):
-  return pipe.predict(np.array([s])) == 1
+  return pipe.predict(np.array([s]))
