@@ -20,6 +20,7 @@ dependencies = [
     "pandas",
     "numpy",
     "scikit-learn",
+    "regex",
 ]
 
 [project.optional-dependencies]

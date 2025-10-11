@@ -23,3 +23,12 @@
 **Model:** `GPT-5`
 
 **Platform:** `ChatGPT web`
+
+---
+### `[2025-10-10 9:02PM]
+**Prompt:**
+> "I have a dataset of SQL injections and non SQL phrases and sentences. How can I use this to create a model that classifies whether text could be an SQL injection or not?"
+
+**Model:** `GPT-5`
+
+**Platform:** `ChatGPT web`
