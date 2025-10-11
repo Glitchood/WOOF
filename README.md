@@ -11,7 +11,9 @@ Linux and Mac
 ```
 $ git clone https://github.com/Glitchood/WOOF.git 
 $ cd WOOF
+$ python -m venv venv 
 $ source venv/bin/activate
+$ pip3 install .
 ```
 
 ## Test:
