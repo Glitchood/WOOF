@@ -23,7 +23,7 @@ async def get_current_user(
         payload = jwt.decode(
             credentials.credentials,
             settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM]
+            algorithms=[settings.ALGORITHM],
         )
         username = payload.get("sub")
         if not username:
@@ -31,7 +31,7 @@ async def get_current_user(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication token",
             )
-        
+
         # Get user from database
         user = crud.get_user_by_username(db, username=username)
         if not user:
@@ -39,9 +39,9 @@ async def get_current_user(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="User not found",
             )
-            
+
         return user
-        
+
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -58,17 +58,17 @@ async def get_current_user(
 async def register(user: schemas.UserCreate, db: Session = Depends(get_session)):
     try:
         print(f"Registering user: {user.username}")
-        
+
         # Check if user exists
         db_user = crud.get_user_by_username(db, username=user.username)
         if db_user:
             raise HTTPException(status_code=400, detail="Username already registered")
-        
+
         # Hash password
         print("Hashing password...")
         hashed_password = auth.get_password_hash(user.password)
         print("Password hashed successfully")
-        
+
         # Create user
         return crud.create_user(db=db, user=user, hashed_password=hashed_password)
     except Exception as e:
@@ -82,9 +82,9 @@ async def login(login_data: schemas.LoginRequest, db: Session = Depends(get_sess
     if not user or not auth.verify_password(login_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password"
+            detail="Incorrect username or password",
         )
-    
+
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     token = auth.create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
@@ -94,12 +94,10 @@ async def login(login_data: schemas.LoginRequest, db: Session = Depends(get_sess
 
 @app.get("/api/me", response_model=schemas.UserPublic)
 async def read_users_me(
-    current_user: Annotated[models.User, Depends(get_current_user)]
+    current_user: Annotated[models.User, Depends(get_current_user)],
 ) -> schemas.UserPublic:
     return schemas.UserPublic(
-        id=current_user.id,
-        username=current_user.username,
-        balance=current_user.balance
+        id=current_user.id, username=current_user.username, balance=current_user.balance
     )
 
 
@@ -125,16 +123,16 @@ def create_transaction(
 ):
     if transaction.amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be positive")
-    
+
     result = crud.create_transaction(
         db=db,
         from_user_id=current_user.id,
         transaction=transaction,
     )
-    
+
     if result is None:
         raise HTTPException(status_code=400, detail="Transaction failed")
-    
+
     return {"status": "success", "transaction_id": result.id}
 
 
@@ -145,7 +143,9 @@ def read_user_transactions(
     db: Session = Depends(get_session),
 ):
     if current_user.id != user_id:  # Prevent IDOR
-        raise HTTPException(status_code=403, detail="Not authorized to view these transactions")
+        raise HTTPException(
+            status_code=403, detail="Not authorized to view these transactions"
+        )
     return crud.get_transactions_for_user(db, user_id=user_id)
 
 

@@ -5,10 +5,10 @@ class UserCreate(BaseModel):
     username: str = Field(min_length=1)  # Simplified validation for testing
     password: str = Field(min_length=1)  # Simplified validation for testing
 
-    @validator('username', 'password')
+    @validator("username", "password")
     def validate_not_empty(cls, v):
         if not v or not v.strip():
-            raise ValueError('must not be empty')
+            raise ValueError("must not be empty")
         return v.strip()
 
 
