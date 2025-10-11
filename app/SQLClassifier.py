@@ -9,6 +9,5 @@ filename = "app/model/trained_model.pkl"
 with open(filename, "rb") as file:
     pipe = pickle.load(file)
 
-
-def predictSQL(s):
+def checkSQL(s):
     return pipe.predict(np.array([s])) == 1
