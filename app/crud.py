@@ -1,15 +1,12 @@
 from sqlmodel import Session, select
-import sqlalchemy
+from ..models import models
+from ..schemas import schemas
 
-from . import models, schemas
+
 
 
 def get_user_by_username(db: Session, username: str):
-    # VULNERABLE: Direct string concatenation in SQL query
-    query = f"SELECT * FROM user WHERE username = '{username}'"
-    result = db.execute(sqlalchemy.text(query))
-    print(query)
-    return result.first()
+    return db.exec(select(models.User).where(models.User.username == username)).first()
 
 
 def create_user(db: Session, user: schemas.UserCreate, hashed_password: str):
@@ -28,9 +25,7 @@ def create_transaction(
     db: Session, from_user_id: int, transaction: schemas.TransactionCreate
 ):
     from_user = db.get(models.User, from_user_id)
-    # Also vulnerable for demonstration
-    query = f"SELECT * FROM user WHERE username = '{transaction.to_user_name}'"
-    to_user = db.execute(sqlalchemy.text(query)).first()
+    to_user = db.query(models.User).filter_by(username=transaction.to_user_name).first()
 
     if not from_user or not to_user:
         return None  # Handle user not found
