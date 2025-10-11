@@ -3,8 +3,6 @@ from ..models import models
 from ..schemas import schemas
 
 
-
-
 def get_user_by_username(db: Session, username: str):
     return db.exec(select(models.User).where(models.User.username == username)).first()
 
