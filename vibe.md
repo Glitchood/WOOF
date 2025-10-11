@@ -32,3 +32,12 @@
 **Model:** `GPT-5`
 
 **Platform:** `ChatGPT web`
+
+---
+### `[2025-10-10 10:16 PM]
+**Prompt:**
+> "--------------------------------------------------------------------------- UnicodeDecodeError Traceback (most recent call last) /tmp/ipython-input-597913002.py in <cell line: 0>() 1 count = 0 2 with open('rockyou.txt', 'r') as f: ----> 3 passwords = f.read() 4 passwords = np.array(passwords.split('\n')) /usr/lib/python3.12/codecs.py in decode(self, input, final) UnicodeDecodeError: 'utf-8' codec can't decode byte 0xf1 in position 5079963: invalid continuation byte I'm getting this error when reading rockyou.txt. How can I get around this?"
+
+**Model:** `GPT-4o mini`
+
+**Platform:** `ChatGPT web`
