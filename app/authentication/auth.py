@@ -3,7 +3,7 @@ from typing import Optional
 import bcrypt
 from jose import jwt
 
-from .config import settings
+from ..config import settings
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
