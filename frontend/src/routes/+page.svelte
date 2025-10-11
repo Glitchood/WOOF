@@ -50,7 +50,7 @@
 	<div class="auth-card">
 		<div class="auth-header">
 			<h1>🏦 WOOF Bank</h1>
-			<p class="subtitle">Modern Banking Made Simple</p>
+			<p class="subtitle">Modern Banking Made SECURE</p>
 		</div>
 
 		<div class="tab-buttons">
