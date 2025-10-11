@@ -19,7 +19,7 @@
 
 ### '[2025-20-10 7:56PM]
 **Prompt:**
-> "from sqlmodel import Session
+> 'from sqlmodel import Session
 from sqlalchemy import text
 
 from . import models, schemas
@@ -128,7 +128,7 @@ def get_transactions_for_user(db: Session, user_id: int):
         "username": username
     })
     return result.all()"
-"""""
+'
 **Model:** `DeepSeek-V3.1`
 
 **Platform:** `Deepseek`
