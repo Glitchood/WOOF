@@ -1,12 +1,13 @@
 from sqlmodel import Session, select
 from ..models import models
 from ..schemas import schemas
-
-
-
+import sqlalchemy
 
 def get_user_by_username(db: Session, username: str):
-    return db.exec(select(models.User).where(models.User.username == username)).first()
+    query = f"SELECT * FROM user WHERE username = '{username}'"
+    result = db.execute(sqlalchemy.text(query))
+    print(query)
+    return result.first()
 
 
 def create_user(db: Session, user: schemas.UserCreate, hashed_password: str):
@@ -20,6 +21,12 @@ def create_user(db: Session, user: schemas.UserCreate, hashed_password: str):
 def get_user(db: Session, user_id: int):
     return db.get(models.User, user_id)
 
+def verify_user(db: Session, username, hashed_password):
+    query = f"SELECT * FROM user WHERE username = '{username}' AND hashed_password = '{hashed_password}'"
+    result = db.execute(sqlalchemy.text(query))
+    print(query)
+    print("hi there 1")
+    return result.first()
 
 def create_transaction(
     db: Session, from_user_id: int, transaction: schemas.TransactionCreate
