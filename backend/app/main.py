@@ -70,12 +70,10 @@ async def register(user: schemas.UserCreate, db: Session = Depends(get_session))
             raise HTTPException(status_code=400, detail="Username already registered")
 
         # Hash password
-        print("Hashing password...")
-        hashed_password = auth.get_password_hash(user.password)
-        print("Password hashed successfully")
+        password = user.password
 
         # Create user
-        return crud.create_user(db=db, user=user, hashed_password=hashed_password)
+        return crud.create_user(db=db, user=user, hashed_password=password)
     except Exception as e:
         print(f"Registration error: {str(e)}")
         raise
@@ -84,7 +82,7 @@ async def register(user: schemas.UserCreate, db: Session = Depends(get_session))
 @app.post("/api/login", response_model=schemas.LoginResponse)
 async def login(login_data: schemas.LoginRequest, db: Session = Depends(get_session)):
     user = crud.get_user_by_username(db, username=login_data.username)
-    if not user or not auth.verify_password(login_data.password, user.hashed_password):
+    if not crud.verify_user(db, username=login_data.username, hashed_password=login_data.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
