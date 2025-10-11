@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
 	import { authStore } from '$lib/auth';
 	import { api, type Transaction } from '$lib/api';
 
@@ -12,10 +11,9 @@
 	let description = $state('');
 	let error = $state('');
 
-
-  let toUsername = '';
-  let amount = 0;
-  let description = '';
+	onMount(() => {
+		loadData();
+	});
 
 	async function loadData() {
 		try {
@@ -32,56 +30,24 @@
 		}
 	}
 
-    if (user) {
-      await loadData();
-    }
-  });
-
-  async function loadData() {
-    if (!user) return;
-    
-    loading = true;
-    error = null;
-    console.log("loading data...");
-    try {
-      const account = await api.getMe(user.token);
-      balance = account.balance;
-      transactions = await api.getTransactions(user.userId);
-    } catch (e) {
-      console.log("ERROR")
-      error = e instanceof Error ? e.message : 'Failed to load data';
-    } finally {
-      loading = false;
-    }
-    console.log("finished loading data");
-  }
-
-  async function handleTransfer() {
-    if (!user) return;
-
-    loading = true;
-    error = null;
-    try {
-      await api.transferFunds({
-        to_user_name: toUsername,
-        amount: amount,
-        description: description
-      });
-      toUserId = 0;
-      amount = 0;
-      description = '';
-      await loadData();
-    } catch (e) {
-      error = e instanceof Error ? e.message : 'Transfer failed';
-    } finally {
-      loading = false;
-    }
-  }
-
-  function handleLogout() {
-    authStore.logout();
-    goto('/');
-  }
+	async function handleTransfer(e: Event) {
+		e.preventDefault();
+		error = '';
+		try {
+			await api.createTransaction({
+to_user_name: toUsername,
+amount: parseFloat(amount),
+description
+});
+			showModal = false;
+			toUsername = '';
+			amount = '';
+			description = '';
+			await loadData();
+		} catch (e) {
+			error = e instanceof Error ? e.message : 'Transfer failed';
+		}
+	}
 </script>
 
 <div class="dashboard">
@@ -98,43 +64,27 @@
 			<div class="amount">${($authStore.user?.balance || 0).toFixed(2)}</div>
 		</div>
 
-  {#if user}
-    <div class="balance-card">
-      <h2>Welcome, {user.username}!</h2>
-      <p class="balance">${balance.toFixed(2)}</p>
-      <p class="label">Current Balance</p>
-    </div>
-
-    <div class="transfer-card">
-      <h3>Transfer Funds</h3>
-      <form on:submit|preventDefault={handleTransfer}>
-        
-        <input
-          type="text"
-          placeholder="Recipient Username"
-          bind:value={toUsername}
-          required
-        />
-        <input
-          type="number"
-          placeholder="Amount"
-          bind:value={amount}
-          step="0.01"
-          required
-        />
-        <input
-          type="text"
-          placeholder="Description"
-          bind:value={description}
-          required
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? 'Processing...' : 'Transfer'}
-        </button>
-      </form>
-    </div>
-
-  {/if}
+		<div class="transactions-card">
+			<h2>Transaction History</h2>
+			{#if transactions.length === 0}
+				<p class="empty">No transactions yet</p>
+			{:else}
+				<div class="transactions-list">
+					{#each transactions as tx}
+						<div class="transaction" class:positive={tx.to_user_id === $authStore.user?.id}>
+							<div class="tx-info">
+								<div class="tx-desc">{tx.description}</div>
+								<div class="tx-date">{new Date(tx.timestamp).toLocaleString()}</div>
+							</div>
+							<div class="tx-amount" class:positive={tx.to_user_id === $authStore.user?.id}>
+								{tx.to_user_id === $authStore.user?.id ? '+' : '-'}${tx.amount.toFixed(2)}
+							</div>
+						</div>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 {#if showModal}
@@ -164,126 +114,215 @@
 {/if}
 
 <style>
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
+	.dashboard {
+		max-width: 900px;
+		margin: 0 auto;
+		padding: 2rem;
+	}
 
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-  }
+	.loading {
+		text-align: center;
+		padding: 3rem;
+		color: var(--text-secondary);
+	}
 
-  h1 {
-    color: #333;
-  }
+	.header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 2rem;
+	}
 
-  button {
-    background: #667eea;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1rem;
-  }
+	h1 {
+		color: var(--text-primary);
+		margin: 0;
+	}
 
-  button:hover {
-    background: #5568d3;
-  }
+	.btn {
+		background: linear-gradient(135deg, var(--primary), var(--accent));
+		color: white;
+		padding: 0.75rem 1.5rem;
+		border: none;
+		border-radius: 8px;
+		cursor: pointer;
+		font-weight: 500;
+		transition: transform 0.2s;
+	}
 
-  button:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-  }
+	.btn:hover {
+		transform: translateY(-2px);
+	}
 
-  .balance-card, .transfer-card, .transactions-card {
-    background: white;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
-  }
+	.balance-card, .transactions-card {
+		background: var(--bg-primary);
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: var(--shadow-lg);
+		margin-bottom: 2rem;
+	}
 
-  .balance {
-    font-size: 3rem;
-    font-weight: bold;
-    color: #667eea;
-    margin: 0.5rem 0;
-  }
-  
-  .userid {
-    font-size: 0.9rem;
-    color: #333;
-  }
+	.balance-card {
+		background: linear-gradient(135deg, var(--primary), var(--accent));
+		color: white;
+		text-align: center;
+	}
 
-  .label {
-    color: #666;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-  }
+	.label {
+		font-size: 0.9rem;
+		opacity: 0.9;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin-bottom: 0.5rem;
+	}
 
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
+	.amount {
+		font-size: 3rem;
+		font-weight: bold;
+		margin: 0.5rem 0;
+	}
 
-  input {
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 1rem;
-  }
+	.transactions-card h2 {
+		margin-top: 0;
+		color: var(--text-primary);
+	}
 
-  .transactions-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 1rem;
-  }
+	.empty {
+		text-align: center;
+		color: var(--text-secondary);
+		padding: 2rem;
+	}
 
-  .transaction {
-    display: flex;
-    justify-content: space-between;
-    padding: 1rem;
-    background: #f5f5f5;
-    border-radius: 8px;
-    border-left: 4px solid #c62828;
-  }
+	.transactions-list {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
 
-  .transaction.positive {
-    border-left-color: #4caf50;
-  }
+	.transaction {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem;
+		background: var(--bg-secondary);
+		border-radius: 8px;
+		border-left: 4px solid var(--error);
+	}
 
-  .transaction .amount {
-    font-weight: bold;
-    font-size: 1.2rem;
-  }
+	.transaction.positive {
+		border-left-color: var(--success);
+	}
 
-  .transaction.positive .amount {
-    color: #4caf50;
-  }
+	.tx-info {
+		flex: 1;
+	}
 
-  .transaction:not(.positive) .amount {
-    color: #c62828;
-  }
+	.tx-desc {
+		font-weight: 500;
+		color: var(--text-primary);
+		margin-bottom: 0.25rem;
+	}
 
-  .id {
-    font-size: 0.85rem;
-    color: #999;
-    margin-left: 0.5rem;
-  }
+	.tx-date {
+		font-size: 0.85rem;
+		color: var(--text-secondary);
+	}
 
-  .error {
-    background: #ffebee;
-    color: #c62828;
-    padding: 1rem;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-  }
+	.tx-amount {
+		font-size: 1.25rem;
+		font-weight: bold;
+		color: var(--error);
+	}
+
+	.tx-amount.positive {
+		color: var(--success);
+	}
+
+	.modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(0, 0, 0, 0.5);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 1000;
+	}
+
+	.modal {
+		background: var(--bg-primary);
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: var(--shadow-xl);
+		min-width: 400px;
+		max-width: 90%;
+	}
+
+	.modal h3 {
+		margin-top: 0;
+		color: var(--text-primary);
+	}
+
+	.alert {
+		background: var(--error-bg);
+		color: var(--error);
+		padding: 0.75rem;
+		border-radius: 6px;
+		margin-bottom: 1rem;
+		font-size: 0.9rem;
+	}
+
+	form {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	label {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		color: var(--text-primary);
+		font-weight: 500;
+	}
+
+	input {
+		padding: 0.75rem;
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		font-size: 1rem;
+		background: var(--bg-primary);
+		color: var(--text-primary);
+	}
+
+	input:focus {
+		outline: none;
+		border-color: var(--primary);
+	}
+
+	.actions {
+		display: flex;
+		gap: 1rem;
+		margin-top: 0.5rem;
+	}
+
+	.btn-secondary {
+		flex: 1;
+		padding: 0.75rem;
+		border: 1px solid var(--border);
+		background: var(--bg-secondary);
+		color: var(--text-primary);
+		border-radius: 6px;
+		cursor: pointer;
+		font-weight: 500;
+	}
+
+	.btn-secondary:hover {
+		background: var(--bg-tertiary);
+	}
+
+	button[type="submit"] {
+		flex: 1;
+	}
 </style>

@@ -167,3 +167,16 @@ def get_transactions_for_user(db: Session, user_id: int):
 **Model:** `Deepseek 3.1`
 
 **Platform:** `Deepseek web`
+
+
+
+Timestamp: [2025-10-11 12:00pm]
+modify the frontend to have a modern, nice UI/UX and white user interface
+
+we need to be able to use the api which has been developed in the backend/ directory.
+
+all functionality needs to work, like an online bank. but only use the functioanlity given in the api.
+
+model: claude sonnet 4.5 preview
+
+platform: github copilot on vscode
