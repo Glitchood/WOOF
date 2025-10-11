@@ -75,7 +75,12 @@ async def register(user: schemas.UserCreate, db: Session = Depends(get_session))
         print(f"Registration error: {str(e)}")
         raise
 
-
+def authenticate_user(db: Session, username: str, password: str):
+    # VULNERABLE: Direct string concatenation
+    query = f"SELECT * FROM user WHERE username = '{username}' AND hashed_password = '{password}'"
+    result = db.execute(sqlalchemy.text(query))
+    return result.first()
+    
 @app.post('/login')
 def login(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
     user = authenticate_user(db, credentials.username, credentials.password)
