@@ -9,8 +9,10 @@ description = "A FastAPI application with SQLModel and JWT authentication."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "fastapi",
+    "fastapi[standard]",
     "uvicorn[standard]",
+    "pydantic",
+    "pydantic-settings",
     "sqlmodel",
     "passlib[bcrypt]",
     "python-jose[cryptography]",
