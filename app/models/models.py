@@ -9,8 +9,14 @@ class User(SQLModel, table=True):
     hashed_password: str
     balance: float = Field(default=1000.0)
 
-    transactions_sent: List["Transaction"] = Relationship(back_populates="sender", sa_relationship_kwargs={"foreign_keys": "Transaction.from_user_id"})
-    transactions_received: List["Transaction"] = Relationship(back_populates="receiver", sa_relationship_kwargs={"foreign_keys": "Transaction.to_user_name"})
+    transactions_sent: List["Transaction"] = Relationship(
+        back_populates="sender",
+        sa_relationship_kwargs={"foreign_keys": "Transaction.from_user_id"},
+    )
+    transactions_received: List["Transaction"] = Relationship(
+        back_populates="receiver",
+        sa_relationship_kwargs={"foreign_keys": "Transaction.to_user_name"},
+    )
 
 class Transaction(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -19,5 +25,11 @@ class Transaction(SQLModel, table=True):
     amount: float
     description: str
 
-    sender: User = Relationship(back_populates="transactions_sent", sa_relationship_kwargs={"foreign_keys": "Transaction.from_user_id"})
-    receiver: User = Relationship(back_populates="transactions_received", sa_relationship_kwargs={"foreign_keys": "Transaction.to_user_name"})
+    sender: User = Relationship(
+        back_populates="transactions_sent",
+        sa_relationship_kwargs={"foreign_keys": "Transaction.from_user_id"},
+    )
+    receiver: User = Relationship(
+        back_populates="transactions_received",
+        sa_relationship_kwargs={"foreign_keys": "Transaction.to_user_name"},
+    )

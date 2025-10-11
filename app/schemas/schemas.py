@@ -8,7 +8,7 @@ class UserCreate(BaseModel):
     @field_validator('username', 'password')
     def validate_not_empty(cls, v):
         if not v or not v.strip():
-            raise ValueError('must not be empty')
+            raise ValueError("must not be empty")
         return v.strip()
 
 
