@@ -3,14 +3,14 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.middleware.cors import CORSMiddleware
 from jose import JWTError, jwt
 from sqlmodel import Session
 
-# from . import authentication, crud, models, schemas
 
-from .authentication import auth
-from .crud import crud
-from .models import models
+from .authentication import  auth
+from .crud import crud 
+from .models import  models
 from .schemas import schemas
 from .config import settings
 from .database import get_session, init_db
@@ -18,6 +18,20 @@ from .SQLClassifier import checkSQL
 
 app = FastAPI(title=settings.app_name)
 security = HTTPBearer()
+
+# CORS Middleware to let the frontend access the api
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins = origins,
+        allow_credentials = True,
+        allow_methods = ["*"],
+        allow_headers = ["*"],
+)
 
 
 async def get_current_user(
