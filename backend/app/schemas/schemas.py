@@ -5,6 +5,7 @@ class UserCreate(BaseModel):
     username: str = Field(min_length=1)  # Simplified validation for testing
     password: str = Field(min_length=1)  # Simplified validation for testing
 
+
     @field_validator("username", "password")
     def validate_not_empty(cls, v):
         if not v or not v.strip():
