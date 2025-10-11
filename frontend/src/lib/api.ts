@@ -40,7 +40,6 @@ export interface DeleteAccountRequest {
 }
 
 export interface TransactionCreate {
-	fromUserId: number;
 	toUsername: string;
 	amount: number;
 	description: string;
@@ -130,14 +129,6 @@ export const api = {
 		const response = await fetch(`${API_ROOT_URL}/api/accounts/${userId}/transactions`, {
 			headers: getAuthHeaders()
 		});
-		return handleResponse<Transaction[]>(response);
-	},
-
-	async searchTransactions(userId: number, description: string): Promise<Transaction[]> {
-		const response = await fetch(
-			`${API_ROOT_URL}/api/accounts/${userId}/transactions/search?description=${encodeURIComponent(description)}`,
-			{ headers: getAuthHeaders() }
-		);
 		return handleResponse<Transaction[]>(response);
 	}
 };

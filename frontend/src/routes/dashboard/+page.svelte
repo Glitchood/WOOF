@@ -9,7 +9,8 @@
   let loading = false;
   let error: string | null = null;
 
-  let toUserId = 0;
+
+  let toUsername = '';
   let amount = 0;
   let description = '';
 
@@ -53,10 +54,9 @@
     error = null;
     try {
       await api.transferFunds({
-        fromUserId: user.userId,
-        toUserId,
-        amount,
-        description
+        to_user_name: toUsername,
+        amount: amount,
+        description: description
       });
       toUserId = 0;
       amount = 0;
@@ -95,10 +95,11 @@
     <div class="transfer-card">
       <h3>Transfer Funds</h3>
       <form on:submit|preventDefault={handleTransfer}>
+        
         <input
-          type="number"
-          placeholder="Recipient User ID"
-          bind:value={toUserId}
+          type="text"
+          placeholder="Recipient Username"
+          bind:value={toUsername}
           required
         />
         <input
@@ -120,28 +121,6 @@
       </form>
     </div>
 
-    <div class="transactions-card">
-      <h3>Recent Transactions</h3>
-      {#if loading && transactions.length === 0}
-        <p>Loading...</p>
-      {:else if transactions.length === 0}
-        <p>No transactions yet</p>
-      {:else}
-        <div class="transactions-list">
-          {#each transactions as transaction}
-            <div class="transaction" class:positive={transaction.amount > 0}>
-              <div>
-                <strong>{transaction.description}</strong>
-                <span class="id">ID: {transaction.transactionId}</span>
-              </div>
-              <span class="amount">
-                {transaction.amount > 0 ? '+' : ''}{transaction.amount.toFixed(2)}
-              </span>
-            </div>
-          {/each}
-        </div>
-      {/if}
-    </div>
   {/if}
 </div>
 
@@ -195,6 +174,11 @@
     font-weight: bold;
     color: #667eea;
     margin: 0.5rem 0;
+  }
+  
+  .userid {
+    font-size: 0.9rem;
+    color: #333;
   }
 
   .label {

@@ -58,7 +58,7 @@
         required
       />
       <input
-        type="password"
+        type="text"
         placeholder="Password"
         bind:value={password}
         required
