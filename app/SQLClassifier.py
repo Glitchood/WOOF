@@ -5,9 +5,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline, FeatureUnion
 import pickle
 
-filename = 'app/model/trained_model.pkl'
-with open(filename, 'rb') as file:
-  pipe = pickle.load(file)
+filename = "app/model/trained_model.pkl"
+with open(filename, "rb") as file:
+    pipe = pickle.load(file)
+
 
 def predictSQL(s):
-  return pipe.predict(np.array([s])) == 1
+    return pipe.predict(np.array([s])) == 1
