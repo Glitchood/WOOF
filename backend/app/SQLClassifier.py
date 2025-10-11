@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline, FeatureUnion
 import pickle
 
-filename = "backend/app/model/trained_model.pkl"
+filename = "app/model/trained_model.pkl"
 with open(filename, "rb") as file:
     pipe = pickle.load(file)
 
