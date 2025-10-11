@@ -7,8 +7,11 @@ from . import models, schemas
 def get_user_by_username(db: Session, username: str):
     # VULNERABLE: Raw SQL with direct string concatenation
     query = f"SELECT * FROM user WHERE username = '{username}'"
+    print(f"EXECUTING VULNERABLE QUERY: {query}")  # DEBUG LINE
     result = db.execute(text(query))
-    return result.first()
+    user = result.first()
+    print(f"QUERY RESULT: {user}")  # DEBUG LINE
+    return user
 
 
 def create_user(db: Session, user: schemas.UserCreate, hashed_password: str):
