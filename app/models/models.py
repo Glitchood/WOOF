@@ -12,7 +12,6 @@ class User(SQLModel, table=True):
     transactions_sent: List["Transaction"] = Relationship(back_populates="sender", sa_relationship_kwargs={"foreign_keys": "Transaction.from_user_id"})
     transactions_received: List["Transaction"] = Relationship(back_populates="receiver", sa_relationship_kwargs={"foreign_keys": "Transaction.to_user_name"})
 
-
 class Transaction(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     from_user_id: int = Field(foreign_key="user.id")

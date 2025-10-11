@@ -1,6 +1,8 @@
 from sqlmodel import Session, select
+from ..models import models
+from ..schemas import schemas
 
-from . import models, schemas
+
 
 
 def get_user_by_username(db: Session, username: str):

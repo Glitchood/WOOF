@@ -6,7 +6,12 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from sqlmodel import Session
 
-from . import auth, crud, models, schemas
+#from . import authentication, crud, models, schemas
+
+from .authentication import  auth
+from .crud import crud 
+from .models import  models
+from .schemas import schemas
 from .config import settings
 from .database import get_session, init_db
 
