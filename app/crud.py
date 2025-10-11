@@ -1,13 +1,13 @@
 from sqlmodel import Session, select
-from sqlalchemy import text  # Added import
+import sqlalchemy
 
 from . import models, schemas
 
 
 def get_user_by_username(db: Session, username: str):
-    # VULNERABLE: Using string formatting in SQL query instead of parameterized queries
-    query = text(f"SELECT * FROM user WHERE username = '{username}'")
-    result = db.execute(query)
+    # VULNERABLE: Direct string concatenation in SQL query
+    query = f"SELECT * FROM user WHERE username = '{username}'"
+    result = db.execute(sqlalchemy.text(query))
     return result.first()
 
 
@@ -27,9 +27,9 @@ def create_transaction(
     db: Session, from_user_id: int, transaction: schemas.TransactionCreate
 ):
     from_user = db.get(models.User, from_user_id)
-    # Also making this vulnerable for demonstration
-    query = text(f"SELECT * FROM user WHERE username = '{transaction.to_user_name}'")
-    to_user = db.execute(query).first()
+    # Also vulnerable for demonstration
+    query = f"SELECT * FROM user WHERE username = '{transaction.to_user_name}'"
+    to_user = db.execute(sqlalchemy.text(query)).first()
 
     if not from_user or not to_user:
         return None  # Handle user not found
