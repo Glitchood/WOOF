@@ -39,7 +39,7 @@ export interface DeleteAccountRequest {
 }
 
 export interface TransactionCreate {
-	to_user_name: string;
+	toUsername: string;
 	amount: number;
 	description: string;
 }
