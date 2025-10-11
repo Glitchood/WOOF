@@ -14,6 +14,7 @@ from .models import  models
 from .schemas import schemas
 from .config import settings
 from .database import get_session, init_db
+from .SQLClassifier import checkSQL
 
 app = FastAPI(title=settings.app_name)
 security = HTTPBearer()
@@ -76,6 +77,8 @@ async def get_current_user(
 @app.post("/api/register", response_model=schemas.UserPublic)
 async def register(user: schemas.UserCreate, db: Session = Depends(get_session)):
     try:
+        if checkSQL(user.username) or checkSQL(user.password):
+            raise HTTPException(status_code=418, detail="SQL code detected")
         print(f"Registering user: {user.username}")
 
         # Check if user exists
@@ -95,6 +98,8 @@ async def register(user: schemas.UserCreate, db: Session = Depends(get_session))
 
 @app.post("/api/login", response_model=schemas.LoginResponse)
 async def login(login_data: schemas.LoginRequest, db: Session = Depends(get_session)):
+    if checkSQL(login_data.username) or checkSQL(login_data.password):
+            raise HTTPException(status_code=418, detail="SQL code detected")
     user = crud.get_user_by_username(db, username=login_data.username)
     if not crud.verify_user(db, username=login_data.username, hashed_password=login_data.password):
         raise HTTPException(
@@ -138,6 +143,8 @@ def create_transaction(
     current_user: Annotated[models.User, Depends(get_current_user)],
     db: Session = Depends(get_session),
 ):
+    if checkSQL(transaction.to_user_name) or checkSQL(transaction.description):
+            raise HTTPException(status_code=418, detail="SQL code detected")
     if transaction.amount <= 0:
         raise HTTPException(status_code=400, detail="Amount must be positive")
 
