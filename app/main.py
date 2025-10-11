@@ -83,7 +83,7 @@ def authenticate_user(db: Session, username: str, password: str):
     return result.first()
     
 @app.post('/login')
-def login(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
+def login(credentials: schemas.UserLogin, db: Session = Depends(get_Session)):
     user = authenticate_user(db, credentials.username, credentials.password)
     if user:
         return {"message": "Login successful", "user": user}
