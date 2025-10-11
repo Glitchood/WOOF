@@ -76,21 +76,13 @@ async def register(user: schemas.UserCreate, db: Session = Depends(get_session))
         raise
 
 
-@app.post("/api/login", response_model=schemas.LoginResponse)
-async def login(login_data: schemas.LoginRequest, db: Session = Depends(get_session)):
-    user = crud.get_user_by_username(db, username=login_data.username)
-    if not user or not auth.verify_password(login_data.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password"
-        )
-    
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    token = auth.create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
-    return {"token": token}
-
+@app.post('/login')
+def login(credentials: schemas.UserLogin, db: Session = Depends(get_db)):
+    user = authenticate_user(db, credentials.username, credentials.password)
+    if user:
+        return {"message": "Login successful", "user": user}
+    else:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
 @app.get("/api/me", response_model=schemas.UserPublic)
 async def read_users_me(
