@@ -14,7 +14,7 @@ from sklearn.metrics import (
 import pickle
 
 # SQL injection strings - https://huggingface.co/datasets/firdhokk/autotrain-data-sql-injection
-df = pd.read_csv("app/model/raw_SQL_I.csv")
+df = pd.read_csv("backend/app/model/raw_SQL_I.csv")
 df = df.rename(columns={"Data": "text"})
 
 
