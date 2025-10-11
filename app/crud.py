@@ -5,42 +5,39 @@ from . import models, schemas
 
 
 def get_user_by_username(db: Session, username: str):
-    query = text("SELECT * FROM user WHERE username = :username")
-    result = db.execute(query, {"username": username})
+    query = text(f"SELECT * FROM user WHERE username = '{username}'")
+    result = db.execute(query)
     return result.first()
 
 
 def create_user(db: Session, user: schemas.UserCreate, hashed_password: str):
-    query = text("""
+    query = text(f"""
         INSERT INTO user (username, hashed_password, balance) 
-        VALUES (:username, :hashed_password, 1000.0)
+        VALUES ('{user.username}', '{hashed_password}', 1000.0)
     """)
-    db.execute(query, {
-        "username": user.username, 
-        "hashed_password": hashed_password
-    })
+    db.execute(query)
     db.commit()
     
     # Retrieve the created user
-    get_query = text("SELECT * FROM user WHERE username = :username")
-    result = db.execute(get_query, {"username": user.username})
+    get_query = text(f"SELECT * FROM user WHERE username = '{user.username}'")
+    result = db.execute(get_query)
     return result.first()
 
 
 def get_user(db: Session, user_id: int):
-    query = text("SELECT * FROM user WHERE id = :user_id")
-    result = db.execute(query, {"user_id": user_id})
+    query = text(f"SELECT * FROM user WHERE id = {user_id}")
+    result = db.execute(query)
     return result.first()
 
 
 def create_transaction(db: Session, from_user_id: int, transaction: schemas.TransactionCreate):
     # Get from_user
-    from_user_query = text("SELECT * FROM user WHERE id = :from_user_id")
-    from_user = db.execute(from_user_query, {"from_user_id": from_user_id}).first()
+    from_user_query = text(f"SELECT * FROM user WHERE id = {from_user_id}")
+    from_user = db.execute(from_user_query).first()
     
     # Get to_user
-    to_user_query = text("SELECT * FROM user WHERE username = :username")
-    to_user = db.execute(to_user_query, {"username": transaction.to_user_name}).first()
+    to_user_query = text(f"SELECT * FROM user WHERE username = '{transaction.to_user_name}'")
+    to_user = db.execute(to_user_query).first()
 
     if not from_user or not to_user:
         return None
@@ -49,36 +46,25 @@ def create_transaction(db: Session, from_user_id: int, transaction: schemas.Tran
         return None
 
     # Update from_user balance
-    update_from_query = text("""
-        UPDATE user SET balance = balance - :amount 
-        WHERE id = :from_user_id
+    update_from_query = text(f"""
+        UPDATE user SET balance = balance - {transaction.amount} 
+        WHERE id = {from_user_id}
     """)
-    db.execute(update_from_query, {
-        "amount": transaction.amount, 
-        "from_user_id": from_user_id
-    })
+    db.execute(update_from_query)
     
     # Update to_user balance
-    update_to_query = text("""
-        UPDATE user SET balance = balance + :amount 
-        WHERE username = :username
+    update_to_query = text(f"""
+        UPDATE user SET balance = balance + {transaction.amount} 
+        WHERE username = '{transaction.to_user_name}'
     """)
-    db.execute(update_to_query, {
-        "amount": transaction.amount, 
-        "username": transaction.to_user_name
-    })
+    db.execute(update_to_query)
 
     # Create transaction record
-    insert_query = text("""
+    insert_query = text(f"""
         INSERT INTO transaction (from_user_id, to_user_name, amount, description) 
-        VALUES (:from_user_id, :to_user_name, :amount, :description)
+        VALUES ({from_user_id}, '{transaction.to_user_name}', {transaction.amount}, '{transaction.description}')
     """)
-    db.execute(insert_query, {
-        "from_user_id": from_user_id,
-        "to_user_name": transaction.to_user_name,
-        "amount": transaction.amount,
-        "description": transaction.description
-    })
+    db.execute(insert_query)
     db.commit()
     
     # Get the last inserted transaction
@@ -89,21 +75,18 @@ def create_transaction(db: Session, from_user_id: int, transaction: schemas.Tran
 
 def get_transactions_for_user(db: Session, user_id: int):
     # First get the username for the user_id
-    user_query = text("SELECT username FROM user WHERE id = :user_id")
-    user_result = db.execute(user_query, {"user_id": user_id})
+    user_query = text(f"SELECT username FROM user WHERE id = {user_id}")
+    user_result = db.execute(user_query)
     username = user_result.scalar()
     
     if not username:
         return []
     
     # Get transactions where user is sender or receiver
-    query = text("""
+    query = text(f"""
         SELECT * FROM transaction 
-        WHERE from_user_id = :user_id 
-        OR to_user_name = :username
+        WHERE from_user_id = {user_id} 
+        OR to_user_name = '{username}'
     """)
-    result = db.execute(query, {
-        "user_id": user_id, 
-        "username": username
-    })
+    result = db.execute(query)
     return result.all()
