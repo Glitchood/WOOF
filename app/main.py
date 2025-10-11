@@ -3,36 +3,20 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.middleware.cors import CORSMiddleware
 from jose import JWTError, jwt
 from sqlmodel import Session
 
+# from . import authentication, crud, models, schemas
 
-from .authentication import  auth
-from .crud import crud 
-from .models import  models
+from .authentication import auth
+from .crud import crud
+from .models import models
 from .schemas import schemas
 from .config import settings
 from .database import get_session, init_db
 
 app = FastAPI(title=settings.app_name)
 security = HTTPBearer()
-
-# CORS Middleware to let the frontend access the api
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "http://localhost:5174",
-    "http://127.0.0.1:5174",
-]
-
-app.add_middleware(
-        CORSMiddleware,
-        allow_origins = origins,
-        allow_credentials = True,
-        allow_methods = ["*"],
-        allow_headers = ["*"],
-)
 
 
 async def get_current_user(
@@ -86,10 +70,12 @@ async def register(user: schemas.UserCreate, db: Session = Depends(get_session))
             raise HTTPException(status_code=400, detail="Username already registered")
 
         # Hash password
-        password = user.password
+        print("Hashing password...")
+        hashed_password = auth.get_password_hash(user.password)
+        print("Password hashed successfully")
 
         # Create user
-        return crud.create_user(db=db, user=user, hashed_password=password)
+        return crud.create_user(db=db, user=user, hashed_password=hashed_password)
     except Exception as e:
         print(f"Registration error: {str(e)}")
         raise
@@ -98,7 +84,7 @@ async def register(user: schemas.UserCreate, db: Session = Depends(get_session))
 @app.post("/api/login", response_model=schemas.LoginResponse)
 async def login(login_data: schemas.LoginRequest, db: Session = Depends(get_session)):
     user = crud.get_user_by_username(db, username=login_data.username)
-    if not crud.verify_user(db, username=login_data.username, hashed_password=login_data.password):
+    if not user or not auth.verify_password(login_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
