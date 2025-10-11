@@ -8,6 +8,7 @@ def get_user_by_username(db: Session, username: str):
     # VULNERABLE: Direct string concatenation in SQL query
     query = f"SELECT * FROM user WHERE username = '{username}'"
     result = db.execute(sqlalchemy.text(query))
+    print(query)
     return result.first()
 
 
