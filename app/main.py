@@ -79,6 +79,7 @@ def authenticate_user(db: Session, username: str, password: str):
     # VULNERABLE: Direct string concatenation
     query = f"SELECT * FROM user WHERE username = '{username}' AND hashed_password = '{password}'"
     result = db.execute(sqlalchemy.text(query))
+    print("has been ran")
     return result.first()
     
 @app.post('/login')
