@@ -37,6 +37,6 @@ class TokenData(BaseModel):
 
 
 class TransactionCreate(BaseModel):
-    to_user_id: int
+    to_user_name: str
     amount: float
     description: str
