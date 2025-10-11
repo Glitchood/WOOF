@@ -1,11 +1,11 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, validator#field_validator
 
 
 class UserCreate(BaseModel):
     username: str = Field(min_length=1)  # Simplified validation for testing
     password: str = Field(min_length=1)  # Simplified validation for testing
 
-    @field_validator('username', 'password')
+    @validator('username', 'password')
     def validate_not_empty(cls, v):
         if not v or not v.strip():
             raise ValueError("must not be empty")
