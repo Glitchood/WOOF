@@ -1,7 +1,7 @@
 import { authStore } from '$lib';
 import { get } from 'svelte/store';
 
-const API_ROOT_URL = 'http://localhost:8000';
+const API_ROOT_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 interface ErrorResponse {
 	detail?: string;
