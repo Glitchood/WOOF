@@ -1,5 +1,6 @@
 from datetime import timedelta
 from typing import Annotated
+import os
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -27,12 +28,24 @@ origins = [
     "http://127.0.0.1:5174",
 ]
 
+# Add Codespace URLs if running in Codespaces
+if os.getenv("CODESPACES") == "true":
+    codespace_name = os.getenv("CODESPACE_NAME", "")
+    if codespace_name:
+        origins.extend([
+            f"https://{codespace_name}-5173.app.github.dev",
+            f"https://{codespace_name}-5174.app.github.dev",
+        ])
+    # Also allow all *.app.github.dev domains for maximum compatibility
+    origins.append("https://*.app.github.dev")
+
 app.add_middleware(
         CORSMiddleware,
         allow_origins = origins,
         allow_credentials = True,
         allow_methods = ["*"],
         allow_headers = ["*"],
+        allow_origin_regex=r"https://.*\.app\.github\.dev" if os.getenv("CODESPACES") == "true" else None,
 )
 
 
