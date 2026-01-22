@@ -70,7 +70,7 @@ export interface TransactionResponse {
 
 export const api = {
 	async register(user: UserRegister): Promise<UserResponse> {
-		const response = await fetch(`${API_ROOT_URL}/api/register`, {
+		const response = await fetch(`${API_ROOT_URL}/register`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(user)
@@ -79,7 +79,7 @@ export const api = {
 	},
 
 	async login(user: UserRegister): Promise<LoginResponse> {
-		const response = await fetch(`${API_ROOT_URL}/api/login`, {
+		const response = await fetch(`${API_ROOT_URL}/login`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(user)
@@ -88,21 +88,21 @@ export const api = {
 	},
 
 	async getMe(): Promise<UserResponse> {
-		const response = await fetch(`${API_ROOT_URL}/api/me`, {
+		const response = await fetch(`${API_ROOT_URL}/me`, {
 			headers: getAuthHeaders()
 		});
 		return handleResponse<UserResponse>(response);
 	},
 
 	async getUser(userId: number): Promise<UserResponse> {
-		const response = await fetch(`${API_ROOT_URL}/api/users/${userId}`, {
+		const response = await fetch(`${API_ROOT_URL}/users/${userId}`, {
 			headers: getAuthHeaders()
 		});
 		return handleResponse<UserResponse>(response);
 	},
 
 	async createTransaction(transaction: TransactionCreate): Promise<TransactionResponse> {
-		const response = await fetch(`${API_ROOT_URL}/api/transactions`, {
+		const response = await fetch(`${API_ROOT_URL}/transactions`, {
 			method: 'POST',
 			headers: getAuthHeaders(),
 			body: JSON.stringify(transaction)
@@ -111,7 +111,7 @@ export const api = {
 	},
 
 	async getTransactions(userId: number): Promise<Transaction[]> {
-		const response = await fetch(`${API_ROOT_URL}/api/users/${userId}/transactions`, {
+		const response = await fetch(`${API_ROOT_URL}/users/${userId}/transactions`, {
 			headers: getAuthHeaders()
 		});
 		return handleResponse<Transaction[]>(response);
